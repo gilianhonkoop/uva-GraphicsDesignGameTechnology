@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()">
+<script>
+
+// Fill in the following details:
+//
+// Student 1 name: Jan Deen
+// Student 1 id  : 12873551
+// Student 2 name: Gilian Honkoop
+// Student 2 id  : 13710729
+// Date          : 9-9-2022
+// Comments      : ....
+//
+// (always fill in these fields before submitting!!)
+
+var myImageData;
+var data; // data we see on screen and write to
+var copy; // copy we read from
+
+const ALIVE = 0;
+const DEAD = 255;
+
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    init : function() {
+        this.canvas.width = 250;
+        this.canvas.height = 250;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+    },
+    start: function() {
+        this.interval = setInterval(updateGameArea, 1000);
+    },
+    clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+function startGame() {
+    myGameArea.init();
+    myGameArea.clear();
+    var width  = myGameArea.canvas.width;
+    var height = myGameArea.canvas.height;
+
+    // obtain a copy of the image data
+    var ctx = myGameArea.context;
+    myImageData = ctx.getImageData(0, 0, width, height);
+    data = myImageData.data;
+
+    // initialize all to dead
+    for (var x=0; x<width; x++)
+      for (var y=0; y<height; y++)
+        setPixel(x, y, DEAD);
+
+    // create some random living cells
+    for (var i=0; i<width*height; i++) {
+      var x = Math.floor(Math.random() * width);
+      var y = Math.floor(Math.random() * height);
+      setPixel(x, y, ALIVE);
+    }
+
+    myGameArea.start();
+}
+
+// from copy; return red value of pixel at (x,y)
+function getPixel(x, y)
+{
+    /* ... */
+    return copy[4 * (y*myGameArea.canvas.width + x)];
+}
+
+// in data; set pixel at (x,y) color to (r,g,b,a)=(val,val,val,255)
+function setPixel(x, y, val)
+{
+    /* ... */
+    var j = 4 * (y*myGameArea.canvas.height + x);
+
+    for (var i=0; i < 3; i++) {
+        data[j+i] = val;
+    }
+
+    data[j+3] = 255;
+}
+
+// return the number of alive neighbours of the cell at (x,y)
+function countNeighbours(x, y)
+{
+    /* ... */
+    var count = 0;
+
+    // increase count for every living neighbour of a cell
+    for (var i=-1; i<2; i++) {
+        for (var j=-1; j<2; j++) {
+            if ((getPixel(x+i, y+j) == ALIVE) && (x+i < myGameArea.canvas.width) 
+            && (0 <= x+i) && (0 <= y+j) && (y+j < myGameArea.canvas.height)) {
+                if (!(i == 0 && j == 0)) {
+                    count++;
+                }
+            }
+        }
+    }
+
+    return count;
+}
+
+function updateGameArea()
+{
+    var xdim = myGameArea.canvas.width;
+    var ydim = myGameArea.canvas.height;
+    var ctx = myGameArea.context;
+
+    copy = Array.from(data); // this creates a copy from "data" to read from
+    myGameArea.clear(); // this clears "data", but that's ok now that we have a copy
+
+    /* ... */
+
+    // checks the status of every cell and its neighbours in copy and creates a new 
+    // cell in data with a status according to conway's rules 
+    for (var x=0; x<xdim; x++) {
+        for (var y=0; y<ydim; y++) {
+            var living = countNeighbours(x,y);
+            
+            if (getPixel(x,y) == DEAD) {
+                if (living == 3) {
+                    setPixel(x, y, ALIVE);
+                }
+                else {
+                    setPixel(x, y, DEAD);
+                }
+            }
+
+            else {
+                if (living == 2 || living == 3) {
+                    setPixel(x, y, ALIVE);
+                }
+                else {
+                    setPixel(x,y, DEAD);
+                }
+            }
+        }
+    }
+
+    ctx.putImageData(myImageData, 0, 0);
+}
+
+</script>
+<p>Conway's Game of Life.</p>
+</body>
+</html>
